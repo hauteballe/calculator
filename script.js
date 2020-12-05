@@ -1,101 +1,101 @@
-let numbers = document.querySelectorAll('.btn-nmb'),
-    operations = document.querySelectorAll('.btn-operation'),
-    clearButtons = document.querySelectorAll('.btn-clear'),
-    decimalButton = document.getElementById('decimal'),
-    result = document.getElementById('equal'),
-    display = document.getElementById('display'),
-    memoryCurrentNumber = 0,
-    memoryNewNumber = false,
-    memoryPendingOperation = '';
+const Calculator = () => {
+  const controlPanel = document.querySelector(".calc-buttons");
+  const display = document.getElementById("display");
+  const state = {
+    currentNumber: 0,
+    newNumber: false,
+    pendingOperation: "",
+  };
 
-const numberPress = (number) => {
-    if (memoryNewNumber) {
-        display.value = number;
-        memoryNewNumber = false;
-    } else {
-        if(display.value === '0') {
-            display.value = number;
-        } else {
-        display.value += number;
-    };
-   };
-};
+  const pressCancel = () => {
+    display.value = "0";
+    state.newNumber = true;
+  };
 
-const operationPress = (op) => {
-    let localOperationMemory = display.value;
-    
-    if (memoryNewNumber && memoryPendingOperation !== '=') {
-        display.value = memoryCurrentNumber;
-    } else {
-        memoryNewNumber = true;
-        if (memoryPendingOperation === '+') {
-            memoryCurrentNumber += Number(localOperationMemory);  
-        } else if (memoryPendingOperation === '-') {
-            memoryCurrentNumber -= Number(localOperationMemory);  
-        } else if (memoryPendingOperation === '*') {
-            memoryCurrentNumber *= Number(localOperationMemory);
-        } else if (memoryPendingOperation === '/') {
-            memoryCurrentNumber /= Number(localOperationMemory);  
-        } else {
-            memoryCurrentNumber = Number(localOperationMemory);  
-        }
+  const pressClear = () => {
+    display.value = "0";
+    state.currentNumber = 0;
+    state.pendingOperation = "";
+    state.newNumber = true;
+  };
 
-        display.value = memoryCurrentNumber;
-        memoryPendingOperation = op;
-    };        
-};
-
-const decimal = () => {
+  const pressDecimal = () => {
     let localDecimalMemory = display.value;
-    
-    if (memoryNewNumber) {
-        localDecimalMemory = '0.';
-        memoryNewNumber = false;
+
+    if (state.newNumber) {
+      localDecimalMemory = "0.";
+      state.newNumber = false;
     } else {
-        if (localDecimalMemory.indexOf('.') === -1) {
-            localDecimalMemory += '.';
-        };
-    };
-    display.value = localDecimalMemory;
-};
-
-const clear = (id) => {
-    if (id === 'ce') {
-        display.value = '0'
-        memoryNewNumber = true;
-    } else if (id === 'c') {
-        display.value = '0'; 
-        memoryNewNumber = true;
-        memoryCurrentNumber = 0;
-        memoryPendingOperation = '';
+      if (!localDecimalMemory.includes(".")) {
+        localDecimalMemory += ".";
+      }
     }
+    display.value = localDecimalMemory;
+  };
+
+  const pressNumbers = (number) => {
+    if (state.newNumber || display.value === "0") {
+      display.value = number;
+      state.newNumber = false;
+    } else {
+      display.value += number;
+    }
+  };
+
+  const executePendingOperation = () => {
+    let localOperationMemory = display.value;
+
+    if (state.pendingOperation === "+") {
+      state.currentNumber += Number(localOperationMemory);
+    } else if (state.pendingOperation === "-") {
+      state.currentNumber -= Number(localOperationMemory);
+    } else if (state.pendingOperation === "*") {
+      state.currentNumber *= Number(localOperationMemory);
+    } else if (state.pendingOperation === "/") {
+      state.currentNumber /= Number(localOperationMemory);
+    } else {
+      state.currentNumber = Number(localOperationMemory);
+    }
+  };
+
+  const pressOperations = (op) => {
+    if (state.newNumber && state.pendingOperation !== "=") {
+      display.value = state.currentNumber;
+      state.pendingOperation = op;
+    } else {
+      state.newNumber = true;
+      executePendingOperation();
+      display.value = state.currentNumber;
+      state.pendingOperation = op;
+    }
+  };
+
+  const pressEqual = () => {
+    executePendingOperation();
+    display.value = state.currentNumber;
+    state.pendingOperation = "";
+    state.newNumber = true;
+  };
+
+  const controllers = {
+    cancel: pressCancel,
+    clear: pressClear,
+    decimal: pressDecimal,
+    number: pressNumbers,
+    operation: pressOperations,
+    equal: pressEqual,
+  };
+
+  const controlHandler = (event) => {
+    const handler = controllers[event.target.dataset.btnType];
+    if (handler) {
+      handler(event.target.textContent);
+    } else {
+      console.log("Calculator Error: invalid controller name.");
+    }
+  };
+
+  controlPanel.addEventListener("click", controlHandler);
 };
 
-for (let i = 0; i<numbers.length; i++) {
-    let number = numbers[i];
-    number.addEventListener("click", function(e){
-        numberPress(e.target.textContent);
-    });
-};
-
-for (let i = 0; i<operations.length; i++) {
-    let operationButton = operations[i];
-    operationButton.addEventListener("click", function(e){
-        operationPress(e.target.textContent);
-    });
-};
-
-for (let i = 0; i<clearButtons.length; i++) {
-    let clearButton = clearButtons[i];
-    clearButton.addEventListener("click", function(e) {
-    clear(e.target.textContent);
-    });
-};
-
-decimalButton.addEventListener("click", decimal);
-
-result.addEventListener("click", function(e){
-    console.log("Клик по result")
-});
-     
-
+const calculator = Calculator();
